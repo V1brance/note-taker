@@ -11,12 +11,15 @@ const PORT = process.env.PORT || 3000;
 // Middleware data parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+//Super interesting piece of code, sets up a static directory
 app.use(express.static(path.join(__dirname, "public")));
 
+//Home Route
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "/public/index.html"))
 );
 
+//Notes Route
 app.get("/notes", (req, res) =>
   res.sendFile(path.join(__dirname, "/public/notes.html"))
 );
@@ -44,6 +47,32 @@ app.post("/api/notes", (req, res) => {
         res.json(notes);
       }
     );
+  });
+});
+
+app.delete("/api/notes/:id", (req, res) => {
+  const noteTitle = req.params.id;
+  res.json(false);
+
+  fs.readFile(path.join(__dirname, "db/db.json"), (err, data) => {
+    if (err) throw err;
+    notes = JSON.parse(data);
+    let i = 0;
+    for (const note of notes) {
+      if (note.title === noteTitle) {
+        notes.splice(i, 1);
+        fs.writeFile(
+          path.join(__dirname, "db/db.json"),
+          JSON.stringify(notes),
+          (err) => {
+            if (err) throw err;
+            console.log("Note deleted succesfully");
+          }
+        );
+        break;
+      }
+      i++;
+    }
   });
 });
 
